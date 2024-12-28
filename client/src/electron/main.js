@@ -2,6 +2,7 @@ import { app, BrowserWindow } from "electron";
 import path from "path";
 import url from "url";
 import process from "process";
+import { pollResources } from "./resourceManager.js";
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -25,6 +26,7 @@ function createWindow() {
     console.log(`Loading file: ${fileUrl}`);
     mainWindow.loadURL(fileUrl);
   }
+  pollResources();
 }
 
 app.whenReady().then(() => {
