@@ -2,31 +2,41 @@ import { app, BrowserWindow } from "electron";
 import path from "path";
 import url from "url";
 import process from "process";
-import { pollResources } from "./resourceManager.js";
+//import { pollResources } from "./resourceManager.js";
 
 const isDev = process.env.NODE_ENV === "development";
-
+function getPreloadPath() {
+  const isDev = !app.isPackaged;
+  return isDev
+    ? path.join(app.getAppPath(), "src/electron/preload.cjs")
+    : path.join(app.getAppPath(), "preload.cjs");
+}
+console.log("Preload Path:", getPreloadPath());
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-      webSecurity: true, // Enabled web security
-      allowFileAccess: true, // Allow file access
+      preload: getPreloadPath(), // Ensure preload.js path is correct
+      contextIsolation: true, // Recommended for security
+      nodeIntegration: false, // Disable Node.js in the renderer process
+      enableRemoteModule: false, // Avoid deprecated remote module
+      sandbox: false, // Ensure sandboxing doesn’t block features
     },
   });
   if (isDev) {
     mainWindow.loadURL("http://localhost:5123");
   } else {
-    const distPath = path.join(app.getAppPath(), "/dist-react/index.html");
+    const distPath = path.join(
+      app.getAppPath(),
+      "client/dist-react/index.html"
+    );
     const fileUrl = url.pathToFileURL(distPath).toString();
 
     console.log(`Loading file: ${fileUrl}`);
     mainWindow.loadURL(fileUrl);
   }
-  pollResources();
+  //pollResources();
 }
 
 app.whenReady().then(() => {
