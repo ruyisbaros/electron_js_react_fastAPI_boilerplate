@@ -1,10 +1,15 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Tray, Menu } from "electron";
 import path from "path";
 import url from "url";
 import process from "process";
-//import { pollResources } from "./resourceManager.js";
 
-const isDev = process.env.NODE_ENV === "development";
+let mainWindow;
+let tray;
+const trayIconPath = path.join(app.getAppPath(), "public/assets/logo_3_16.png");
+console.log(trayIconPath);
+const isDev = !app.isPackaged; // Check if the app is running in development
+
+/* GET PRELOAD JS */
 function getPreloadPath() {
   const isDev = !app.isPackaged;
   return isDev
@@ -12,8 +17,10 @@ function getPreloadPath() {
     : path.join(app.getAppPath(), "preload.cjs");
 }
 console.log("Preload Path:", getPreloadPath());
+
+/* CREATE MAIN WINDOW */
 function createWindow() {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -36,14 +43,105 @@ function createWindow() {
     console.log(`Loading file: ${fileUrl}`);
     mainWindow.loadURL(fileUrl);
   }
-  //pollResources();
+  tray = new Tray(trayIconPath); // Replace with your icon
+  tray.setToolTip("Translation Service");
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "Show App",
+      click: () => {
+        mainWindow.show();
+      },
+    },
+    {
+      label: "Start Translation",
+      click: () => {
+        console.log("Translation started");
+        // Add logic to start translation here
+      },
+    },
+    {
+      label: "Stop Translation",
+      click: () => {
+        console.log("Translation stopped");
+        // Add logic to stop translation here
+      },
+    },
+    {
+      label: "Quit",
+      click: () => {
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setContextMenu(contextMenu);
+
+  // Optional: Double-click to show the app
+  tray.on("double-click", () => {
+    mainWindow.show();
+  });
+  mainWindow.on("minimize", (event) => {
+    event.preventDefault();
+    mainWindow.hide(); // Minimize to Tray
+  });
+
+  mainWindow.on("close", (event) => {
+    event.preventDefault();
+    mainWindow.hide(); // Hide the window instead of quitting
+  });
 }
 
+/* CREATE TRAY */
+function createTray() {
+  tray = new Tray(trayIconPath); // Replace with your icon
+  tray.setToolTip("Translation Service");
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "Show App",
+      click: () => {
+        mainWindow.show();
+      },
+    },
+    {
+      label: "Start Translation",
+      click: () => {
+        console.log("Translation started");
+        // Add logic to start translation here
+      },
+    },
+    {
+      label: "Stop Translation",
+      click: () => {
+        console.log("Translation stopped");
+        // Add logic to stop translation here
+      },
+    },
+    {
+      label: "Quit",
+      click: () => {
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setContextMenu(contextMenu);
+
+  // Optional: Double-click to show the app
+  tray.on("double-click", () => {
+    mainWindow.show();
+  });
+}
+
+/* INVOKE WINDOWS*/
 app.whenReady().then(() => {
   createWindow();
 
   app.on("activate", function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
   });
 });
 
