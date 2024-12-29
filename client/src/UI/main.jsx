@@ -1,11 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import process from "process";
 import "./index.css";
 import App from "./App.jsx";
 
 const setDynamicCSP = () => {
-  const isDevelopment = process.env.NODE_ENV === "development";
+  const isDevelopment = import.meta.env.MODE === "development";
 
   const csp = isDevelopment
     ? "default-src 'self'; connect-src 'self' http://localhost:8000; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; font-src 'self';"
